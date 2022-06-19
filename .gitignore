@@ -1,1 +1,4 @@
-oot_out.txt
+boot_out.txt
+**/WPSettings.dat
+**/indexerVolumeGuid
+
