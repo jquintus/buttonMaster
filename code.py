@@ -15,10 +15,10 @@ from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 from adafruit_hid.mouse import Mouse
+import usb_hid
 
 import rotaryio
 
-print ("Hello World")
 # Set up constants
 VOLUME_UP = 0x80
 VOLUME_DOWN = 0x81
@@ -74,6 +74,8 @@ k = Keyboard(hid.devices)
 kl = KeyboardLayoutUS(k)
 
 mouse = Mouse(hid.devices)
+
+cc = ConsumerControl(usb_hid.devices)
 
 # Define some helper functions
 def move_mouse_to_right_monitor():
@@ -172,6 +174,17 @@ def zoom_assign_host_and_leave_meeting():
     mouse.click(Mouse.LEFT_BUTTON) # Click the "assign and leave" button
     time.sleep(0.4)
 
+
+def volume_down():
+    print("going down")
+    # k.send(VOLUME_DOWN)
+    cc.send(ConsumerControlCode.VOLUME_DECREMENT)
+
+def volume_up():
+    print("Going up")
+    # k.send(VOLUME_UP)
+    cc.send(ConsumerControlCode.VOLUME_INCREMENT)
+
 def wait_for_bluetooth_connection(ble):
     ble_counter = 50000 + 1
 
@@ -217,14 +230,13 @@ while True:
         position_change = current_position - last_position
         if position_change > 0:
             for _ in range(position_change):
-                print("Going up")
-                k.send(VOLUME_UP)
+                volume_up()
+
             print(current_position)
 
         elif position_change < 0:
             for _ in range(-1 * position_change):
-                print("going down")
-                k.send(VOLUME_DOWN)
+                volume_down()
             print(current_position)
 
         last_position = current_position
