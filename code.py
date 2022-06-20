@@ -75,7 +75,7 @@ kl = KeyboardLayoutUS(k)
 
 mouse = Mouse(hid.devices)
 
-cc = ConsumerControl(usb_hid.devices)
+cc = ConsumerControl(hid.devices)
 
 # Define some helper functions
 def move_mouse_to_right_monitor():
@@ -197,33 +197,54 @@ def wait_for_bluetooth_connection(ble):
         pass
     print("Start typing:")
 
+def send_complex_combo(keycode):
+    # We shouldn't need to go through these hoops
+    # but when I was testing it, just using `send(...)`
+    # would always leave a modifer pressed.
+    # Explicitly unpressing the modifier seems to be required.
+
+    k.send(Keycode.CONTROL, Keycode.SHIFT, Keycode.ALT, keycode)
+
 while True:
     wait_for_bluetooth_connection(ble)
 
     while ble.connected:
         if not button_top_red.value:
             print("Button 12 (top red) - Zoom: Toggle Video")
-            zoom_toggle_video()
+            # zoom_toggle_video()
+
+            send_complex_combo(Keycode.F1)
+            time.sleep(0.4)
 
         if not button_bot_red.value:
             print("Button 11 (bot red) - Zoom: Toggle Audio")
-            zoom_toggle_mute()
+            # zoom_toggle_mute()
+            send_complex_combo(Keycode.F6)
+            time.sleep(0.4)
 
         if not button_top_yel.value:
             print("Button 10 (top yel) - Zoom: Share Screen")
-            zoom_start_screen_share()
+            # zoom_start_screen_share()
+            send_complex_combo(Keycode.F2)
+            time.sleep(0.4)
 
         if not button_bot_yel.value:
             print("Button  9 (top yel) - Zoom: Change View")
-            zoom_change_view()
+            # zoom_change_view()
+            send_complex_combo(Keycode.F7)
+            time.sleep(0.4)
 
         if not button_top_grn.value:
             print("Button  5 (top grn) - Zoom: Closing Meeting")
-            zoom_close_meeting()
+            # zoom_close_meeting()
+            send_complex_combo(Keycode.F3)
+            time.sleep(0.4)
 
         if not button_bot_grn.value:
             print("Button  6 (bot grn) - Zoom: Assign new host and leave meeting")
-            zoom_assign_host_and_leave_meeting()
+            # zoom_assign_host_and_leave_meeting()
+            send_complex_combo(Keycode.F8)
+            time.sleep(0.4)
 
         # Rotary encoder (volume knob)
         current_position = encoder.position
@@ -242,4 +263,3 @@ while True:
         last_position = current_position
 
     ble.start_advertising(advertisement)
-
