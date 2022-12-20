@@ -1,0 +1,5 @@
+UF2 Bootloader 0.2.6 lib/nrfx (v1.1.0-1-g096e770) lib/tinyusb (legacy-525-ga1c59649) s140 6.1.1
+Model: Adafruit Feather nRF52840 Express
+Board-ID: NRF52-Bluefruit-v0
+Bootloader: s140 6.1.1
+Date: Dec 21 2018
