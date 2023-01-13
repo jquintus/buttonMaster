@@ -9,3 +9,14 @@ This code is either configured to run off of a [Adafruit NeoTrellis](https://www
 ## Debugging
 
 For help debugging, see my blog post about using [Circuit Python](https://quintussential.com/archive/2020/06/14/Day-11-Progress-with-Circuit-Python/).
+
+## Checking the code out onto a new device
+
+One option is to just download the code and copy it to the device. Another option is to checkout the code on the device. The problem is that you can't just `git clone https://github.com/jquintus/buttonMaster.git` because the folder already exists. To get around this first delete everything in the root of the drive. Then execute the following git commands.
+
+```
+git init
+git remote add origin https://github.com/jquintus/buttonMaster.git
+git fetch
+git checkout origin/main -ft
+```

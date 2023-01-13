@@ -42,34 +42,84 @@ CYAN = (0, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (180, 0, 255)
 
-def send_complex_combo(keycode):
+def send_ctrl_shift_alt_combo(keycode):
     k.send(Keycode.CONTROL, Keycode.SHIFT, Keycode.ALT, keycode)
 
-# this will be called when button events are received
+def volume_down():
+    print("volume going down")
+    cc.send(ConsumerControlCode.VOLUME_DECREMENT)
+
+def volume_up():
+    print("volume Going up")
+    cc.send(ConsumerControlCode.VOLUME_INCREMENT)
+
+def volume_mute():
+    print("volume mute")
+    cc.send(ConsumerControlCode.MUTE)
+
+# this will be called when neo-tesllis events are received
 def blink(event):
+    # Button Orientation If the Switch is on the top
+    #  3  7 11 15
+    #  2  6 10 14
+    #  1  5  9 13
+    #  0  4  8 12
+    
     # turn the LED on when a rising edge is detected
     if event.edge == NeoTrellis.EDGE_RISING:
         trellis.pixels[event.number] = GREEN
         print(f'Pressed {event.number}')
 
-        if event.number == 1:
-            print("Button 12 (top red) - Zoom: Toggle Video")
-            send_complex_combo(Keycode.F1)
+        # Column 0
+        if event.number == 3:
+            print("Zoom: Toggle Audio")
+            send_ctrl_shift_alt_combo(Keycode.F6)
         elif event.number == 2:
-            print("Button 11 (bot red) - Zoom: Toggle Audio")
-            send_complex_combo(Keycode.F6)
-        elif event.number == 3:
-            print("Button 10 (top yel) - Zoom: Share Screen")
-            send_complex_combo(Keycode.F2)
-        elif event.number == 4:
-            print("Button  9 (top yel) - Zoom: Change View")
-            send_complex_combo(Keycode.F7)
-        elif event.number == 5:
-            print("Button  5 (top grn) - Zoom: Closing Meeting")
-            send_complex_combo(Keycode.F3)
+            print("Zoom: Toggle Video")
+            send_ctrl_shift_alt_combo(Keycode.F1)
+        elif event.number == 1:
+            print("Zoom: Copy Invite Link")
+            send_ctrl_shift_alt_combo(Keycode.F4)
+        elif event.number == 0:
+            print("Zoom: raise/lower hand")
+            send_ctrl_shift_alt_combo(Keycode.F8)
+        # Column 1
+        if event.number == 7:
+            print("Zoom: Share")
+            send_ctrl_shift_alt_combo(Keycode.F2)
         elif event.number == 6:
-            print("Button  6 (bot grn) - Zoom: Assign new host and leave meeting")
-            send_complex_combo(Keycode.F8)
+            print("Zoom: Pause Share")
+            send_ctrl_shift_alt_combo(Keycode.F7)
+        elif event.number == 5:
+            print("Button 5 unset")
+        elif event.number == 4:
+            print("Button 4 unset")
+        # Column 2
+        if event.number == 11:
+            print("OBS: Switch to Default Scene")
+            send_ctrl_shift_alt_combo(Keycode.F11)
+            send_ctrl_shift_alt_combo(Keycode.F10)
+        elif event.number == 10:
+            print("OBS: Toggle Virtual Camera")
+            send_ctrl_shift_alt_combo(Keycode.F12)
+        elif event.number == 9:
+            print("OBS: Screen Shot Output")
+            send_ctrl_shift_alt_combo(Keycode.F9)
+        elif event.number == 8:
+            print("OBS: Transition")
+            send_ctrl_shift_alt_combo(Keycode.F10)
+        # Column 3
+        elif event.number == 15:
+            volume_up()
+
+        elif event.number == 14:
+            volume_down()
+
+        elif event.number == 13:
+            volume_mute()
+
+        elif event.number == 12:
+            volume_mute()
 
     # turn the LED off when a falling edge is detected
     elif event.edge == NeoTrellis.EDGE_FALLING:
