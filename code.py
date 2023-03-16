@@ -57,6 +57,37 @@ def volume_mute():
     print("volume mute")
     cc.send(ConsumerControlCode.MUTE)
 
+
+class LambdaButton:
+    def __init__(self, name, func):
+        self.name = name
+        self.onPressFunc = func
+
+    def onPress(self):
+        print(f"Pressed - {self.name}")
+        self.onPressFunc()
+
+class EmptyButton:
+    def __init__(self, name):
+        self.name = name
+
+    def onPress(self):
+        print(f"Pressed - {self.name}")
+        print("nothing to do")
+
+class KeyComboButton:
+    def __init__(self, name, keyboard, *keycodes):
+        self.name = name
+        self.keyboard = keyboard
+        self.keycodes = keycodes
+
+    def onPress(self):
+        print(f"Pressed - {self.name}")
+        for keycode in self.keycodes:
+            print(f"Pressing {keycode}")
+            self.keyboard.send(Keycode.CONTROL, Keycode.SHIFT, Keycode.ALT, keycode)
+
+
 # this will be called when neo-tesllis events are received
 def blink(event):
     # Button Orientation If the Switch is on the top
@@ -70,57 +101,7 @@ def blink(event):
         trellis.pixels[event.number] = GREEN
         print(f'Pressed {event.number}')
 
-        # Column 0
-        if event.number == 3:
-            print("Zoom: Toggle Audio")
-            send_ctrl_shift_alt_combo(Keycode.F6)
-        elif event.number == 2:
-            print("Zoom: Toggle Video")
-            send_ctrl_shift_alt_combo(Keycode.F1)
-        elif event.number == 1:
-            print("Zoom: Copy Invite Link")
-            send_ctrl_shift_alt_combo(Keycode.F4)
-        elif event.number == 0:
-            print("Zoom: raise/lower hand")
-            send_ctrl_shift_alt_combo(Keycode.F8)
-        # Column 1
-        if event.number == 7:
-            print("Zoom: Share")
-            send_ctrl_shift_alt_combo(Keycode.F2)
-        elif event.number == 6:
-            print("Zoom: Pause Share")
-            send_ctrl_shift_alt_combo(Keycode.F7)
-        elif event.number == 5:
-            print("Button 5 unset")
-        elif event.number == 4:
-            print("Button 4 unset")
-        # Column 2
-        if event.number == 11:
-            print("OBS: Switch to Default Scene")
-            send_ctrl_shift_alt_combo(Keycode.F11)
-            send_ctrl_shift_alt_combo(Keycode.F10)
-        elif event.number == 10:
-            print("OBS: Toggle Virtual Camera")
-            send_ctrl_shift_alt_combo(Keycode.F12)
-        elif event.number == 9:
-            print("OBS: Screen Shot Output")
-            send_ctrl_shift_alt_combo(Keycode.F9)
-        elif event.number == 8:
-            print("OBS: Transition")
-            send_ctrl_shift_alt_combo(Keycode.F10)
-        # Column 3
-        elif event.number == 15:
-            volume_up()
-
-        elif event.number == 14:
-            volume_down()
-
-        elif event.number == 13:
-            volume_mute()
-
-        elif event.number == 12:
-            volume_mute()
-
+        buttons[event.number].onPress()
     # turn the LED off when a falling edge is detected
     elif event.edge == NeoTrellis.EDGE_FALLING:
         trellis.pixels[event.number] = OFF
@@ -150,6 +131,32 @@ kl = KeyboardLayoutUS(k)
 mouse = Mouse(hid.devices)
 
 cc = ConsumerControl(hid.devices)
+
+buttons = [
+        # Column 0
+        KeyComboButton("Zoom: raise/lower hand",        k, Keycode.F8),
+        KeyComboButton("Zoom: Copy Invite Link",        k, Keycode.F4),
+        KeyComboButton("Zoom: Toggle Video",            k, Keycode.F1),
+        KeyComboButton("Zoom: Toggle Audio",            k, Keycode.F6),
+
+        # Column 1
+        EmptyButton(   "Button 5 unset"),
+        EmptyButton(   "Button 4 unset"),
+        KeyComboButton("Zoom: Pause Share",             k, Keycode.F7),
+        KeyComboButton("Zoom: Share",                   k, Keycode.F2),
+
+        # Column 2
+        KeyComboButton("OBS: Transition",               k, Keycode.F10),
+        KeyComboButton("OBS: Screen Shot Output",       k, Keycode.F9),
+        KeyComboButton("OBS: Toggle Virtual Camera",    k, Keycode.F12),
+        KeyComboButton("OBS: Switch to Default Scene",  k, Keycode.F11, Keycode.F10),
+
+        # Column 3
+        LambdaButton(  "Volume Mute", lambda: volume_mute()),
+        LambdaButton(  "Volume Mute", lambda: volume_mute()),
+        LambdaButton(  "Volume Down", lambda: volume_down()),
+        LambdaButton(  "Volume Up",   lambda: volume_up()),
+        ]
 
 def wait_for_bluetooth_connection(ble, pixels):
     ble_counter = 50000 + 1
