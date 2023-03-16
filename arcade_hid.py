@@ -42,22 +42,6 @@ class ArcadeKeyboard:
         self.mouse = mouse
         self.cc = cc
 
-
-    def wait_for_bluetooth_connection(self):
-        ble = self.ble
-        ble_counter = 50000 + 1
-
-        print ("waiting for connection...")
-        while not ble.connected:
-            ble_counter += 1
-            if ble_counter > 50000:
-                ble_counter = 0
-                print ("waiting for connection...")
-            pass
-
-        print("bluetooth connected")
-
-
     def start_advertising(self):
         ble = self.ble
         advertisement = self.advertisement

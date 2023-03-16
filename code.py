@@ -32,10 +32,10 @@ def on_press(event):
     elif event.edge == NeoTrellis.EDGE_FALLING:
         trellis.pixels[event.number] = OFF
 
-arcade = ArcadeKeyboard()
-arcade.start()
-k = arcade.get_keyboard()
-cc = arcade.get_consumer_control()
+ble = ArcadeKeyboard()
+ble.start()
+k = ble.get_keyboard()
+cc = ble.get_consumer_control()
 
 trellis = Trellis(on_press)
 trellis.start()
@@ -75,14 +75,34 @@ buttons = [
         VolumeButton(  "Volume Up",                     YELLOW, cc, ConsumerControlCode.VOLUME_INCREMENT),
         ]
 
-while True:
-    arcade.wait_for_bluetooth_connection()
+def wait_for_bluetooth_connection():
+    ble_counter = 0
+    pixels = trellis.pixels
 
-    while arcade.is_connected():
+    print ("Waiting for connection...")
+    pixels[15] = BLUE
+    next_color = YELLOW
+    while not ble.is_connected():
+        ble_counter += 1
+        if ble_counter > 50000:
+            ble_counter = 0
+            print ("Waiting for connection...")
+            swap = pixels[15]
+            pixels[15] = next_color
+            next_color = swap 
+        pass
+
+    pixels[15] = OFF
+    print("Start typing:")
+
+while True:
+    wait_for_bluetooth_connection()
+
+    while ble.is_connected():
 
         # call the sync function call any triggered callbacks
         trellis.sync()
         # the trellis can only be read every 17 millisecons or so
         time.sleep(0.02)
 
-    arcade.start_advertising()
+    ble.start_advertising()
