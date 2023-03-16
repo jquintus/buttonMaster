@@ -19,19 +19,14 @@ from adafruit_hid.keycode import Keycode
 from adafruit_hid.mouse import Mouse
 import usb_hid
 
+from buttons import LambdaButton, EmptyButton, KeyComboButton, VolumeButton
 
 print("Hello, CircuitPython!")
 
-
 # create the i2c object for the trellis
 i2c_bus = board.I2C()  # uses board.SCL and board.SDA
-# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
-
-# create the trellis
 trellis = NeoTrellis(i2c_bus)
-
-# Set the brightness value (0 to 1.0)
-trellis.brightness = 0.5
+trellis.brightness = 0.12
 
 # some color definitions
 OFF = (0, 0, 0)
@@ -42,50 +37,6 @@ CYAN = (0, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (180, 0, 255)
 
-def send_ctrl_shift_alt_combo(keycode):
-    k.send(Keycode.CONTROL, Keycode.SHIFT, Keycode.ALT, keycode)
-
-def volume_down():
-    print("volume going down")
-    cc.send(ConsumerControlCode.VOLUME_DECREMENT)
-
-def volume_up():
-    print("volume Going up")
-    cc.send(ConsumerControlCode.VOLUME_INCREMENT)
-
-def volume_mute():
-    print("volume mute")
-    cc.send(ConsumerControlCode.MUTE)
-
-
-class LambdaButton:
-    def __init__(self, name, func):
-        self.name = name
-        self.onPressFunc = func
-
-    def onPress(self):
-        print(f"Pressed - {self.name}")
-        self.onPressFunc()
-
-class EmptyButton:
-    def __init__(self, name):
-        self.name = name
-
-    def onPress(self):
-        print(f"Pressed - {self.name}")
-        print("nothing to do")
-
-class KeyComboButton:
-    def __init__(self, name, keyboard, *keycodes):
-        self.name = name
-        self.keyboard = keyboard
-        self.keycodes = keycodes
-
-    def onPress(self):
-        print(f"Pressed - {self.name}")
-        for keycode in self.keycodes:
-            print(f"Pressing {keycode}")
-            self.keyboard.send(Keycode.CONTROL, Keycode.SHIFT, Keycode.ALT, keycode)
 
 
 # this will be called when neo-tesllis events are received
@@ -152,10 +103,10 @@ buttons = [
         KeyComboButton("OBS: Switch to Default Scene",  k, Keycode.F11, Keycode.F10),
 
         # Column 3
-        LambdaButton(  "Volume Mute", lambda: volume_mute()),
-        LambdaButton(  "Volume Mute", lambda: volume_mute()),
-        LambdaButton(  "Volume Down", lambda: volume_down()),
-        LambdaButton(  "Volume Up",   lambda: volume_up()),
+        VolumeButton(  "Volume Mute", cc, ConsumerControlCode.MUTE),
+        VolumeButton(  "Volume Mute", cc, ConsumerControlCode.MUTE),
+        VolumeButton(  "Volume Down", cc, ConsumerControlCode.VOLUME_DECREMENT),
+        VolumeButton(  "Volume Up",   cc, ConsumerControlCode.VOLUME_INCREMENT),
         ]
 
 def wait_for_bluetooth_connection(ble, pixels):
