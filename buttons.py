@@ -1,3 +1,5 @@
+from adafruit_hid.keycode import Keycode
+
 class LambdaButton:
     def __init__(self, name, func):
         self.name = name
