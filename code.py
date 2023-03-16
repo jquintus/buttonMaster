@@ -22,10 +22,12 @@ def on_press(event):
     
     # turn the LED on when a rising edge is detected
     if event.edge == NeoTrellis.EDGE_RISING:
-        trellis.pixels[event.number] = GREEN
         print(f'Pressed {event.number}')
+        button = buttons[event.number]
 
-        buttons[event.number].onPress()
+        trellis.pixels[event.number] = button.color
+        button.onPress()
+
     # turn the LED off when a falling edge is detected
     elif event.edge == NeoTrellis.EDGE_FALLING:
         trellis.pixels[event.number] = OFF
@@ -49,28 +51,28 @@ PURPLE = (180, 0, 255)
 
 buttons = [
         # Column 0
-        KeyComboButton("Zoom: raise/lower hand",        k, Keycode.F8),
-        KeyComboButton("Zoom: Copy Invite Link",        k, Keycode.F4),
-        KeyComboButton("Zoom: Toggle Video",            k, Keycode.F1),
-        KeyComboButton("Zoom: Toggle Audio",            k, Keycode.F6),
+        KeyComboButton("Zoom: raise/lower hand",        GREEN, k, Keycode.F8),
+        KeyComboButton("Zoom: Copy Invite Link",        GREEN, k, Keycode.F4),
+        KeyComboButton("Zoom: Toggle Video",            GREEN, k, Keycode.F1),
+        KeyComboButton("Zoom: Toggle Audio",            GREEN, k, Keycode.F6),
 
         # Column 1
-        EmptyButton(   "Button 5 unset"),
-        EmptyButton(   "Button 4 unset"),
-        KeyComboButton("Zoom: Pause Share",             k, Keycode.F7),
-        KeyComboButton("Zoom: Share",                   k, Keycode.F2),
+        EmptyButton(   "Button 5 unset",                CYAN),
+        EmptyButton(   "Button 4 unset",                CYAN),
+        KeyComboButton("Zoom: Pause Share",             GREEN, k, Keycode.F7),
+        KeyComboButton("Zoom: Share",                   GREEN, k, Keycode.F2),
 
         # Column 2
-        KeyComboButton("OBS: Transition",               k, Keycode.F10),
-        KeyComboButton("OBS: Screen Shot Output",       k, Keycode.F9),
-        KeyComboButton("OBS: Toggle Virtual Camera",    k, Keycode.F12),
-        KeyComboButton("OBS: Switch to Default Scene",  k, Keycode.F11, Keycode.F10),
+        KeyComboButton("OBS: Transition",               BLUE,  k, Keycode.F10),
+        KeyComboButton("OBS: Screen Shot Output",       BLUE,  k, Keycode.F9),
+        KeyComboButton("OBS: Toggle Virtual Camera",    BLUE,  k, Keycode.F12),
+        KeyComboButton("OBS: Switch to Default Scene",  BLUE,  k, Keycode.F11, Keycode.F10),
 
         # Column 3
-        VolumeButton(  "Volume Mute", cc, ConsumerControlCode.MUTE),
-        VolumeButton(  "Volume Mute", cc, ConsumerControlCode.MUTE),
-        VolumeButton(  "Volume Down", cc, ConsumerControlCode.VOLUME_DECREMENT),
-        VolumeButton(  "Volume Up",   cc, ConsumerControlCode.VOLUME_INCREMENT),
+        VolumeButton(  "Volume Mute",                   YELLOW, cc, ConsumerControlCode.MUTE),
+        VolumeButton(  "Volume Mute",                   YELLOW, cc, ConsumerControlCode.MUTE),
+        VolumeButton(  "Volume Down",                   YELLOW, cc, ConsumerControlCode.VOLUME_DECREMENT),
+        VolumeButton(  "Volume Up",                     YELLOW, cc, ConsumerControlCode.VOLUME_INCREMENT),
         ]
 
 while True:
