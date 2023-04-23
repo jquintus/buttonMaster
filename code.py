@@ -1,108 +1,153 @@
 import time
+import board
+from digitalio import DigitalInOut, Direction, Pull
 
-# needed for keycodes 
-from adafruit_hid.keycode import Keycode
+import adafruit_ble
+from adafruit_ble.advertising import Advertisement
+from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
+from adafruit_ble.services.standard.hid import HIDService
+from adafruit_ble.services.standard.device_info import DeviceInfoService
+from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
+from adafruit_hid.keyboard import Keyboard
+from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
+from adafruit_hid.keycode import Keycode
+import usb_hid
 
-# Needed for Edge Detection
-from adafruit_neotrellis.neotrellis import NeoTrellis
+import rotaryio
 
-# my imports
-from arcade_hid import ArcadeKeyboard
-from buttons import LambdaButton, EmptyButton, KeyComboButton, VolumeButton
-from trellis import Trellis
+# Set up constants
+VOLUME_UP = 0x80
+VOLUME_DOWN = 0x81
 
-print("Hello, CircuitPython!")
-def on_press(event):
-    # Button Orientation If the Switch is on the top
-    #  3  7 11 15
-    #  2  6 10 14
-    #  1  5  9 13
-    #  0  4  8 12
-    
-    # turn the LED on when a rising edge is detected
-    if event.edge == NeoTrellis.EDGE_RISING:
-        print(f'Pressed {event.number}')
-        button = buttons[event.number]
+# Set up buttons
+button_top_red = DigitalInOut(board.D12)
+button_top_red.direction = Direction.INPUT
+button_top_red.pull = Pull.UP
 
-        trellis.pixels[event.number] = button.color
-        button.onPress()
+button_bot_red = DigitalInOut(board.D11)
+button_bot_red.direction = Direction.INPUT
+button_bot_red.pull = Pull.UP
 
-    # turn the LED off when a falling edge is detected
-    elif event.edge == NeoTrellis.EDGE_FALLING:
-        trellis.pixels[event.number] = OFF
+button_top_yel = DigitalInOut(board.D10)
+button_top_yel.direction = Direction.INPUT
+button_top_yel.pull = Pull.UP
 
-ble = ArcadeKeyboard()
-ble.start()
-k = ble.get_keyboard()
-cc = ble.get_consumer_control()
+button_bot_yel = DigitalInOut(board.D9)
+button_bot_yel.direction = Direction.INPUT
+button_bot_yel.pull = Pull.UP
 
-trellis = Trellis(on_press)
-trellis.start()
+button_bot_grn = DigitalInOut(board.D6)
+button_bot_grn.direction = Direction.INPUT
+button_bot_grn.pull = Pull.UP
 
-# some color definitions
-OFF = (0, 0, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 150, 0)
-GREEN = (0, 255, 0)
-CYAN = (0, 255, 255)
-BLUE = (0, 0, 255)
-PURPLE = (180, 0, 255)
+button_top_grn = DigitalInOut(board.D5)
+button_top_grn.direction = Direction.INPUT
+button_top_grn.pull = Pull.UP
 
-buttons = [
-        # Column 0
-        KeyComboButton("Zoom: raise/lower hand",        GREEN, k, Keycode.F8),
-        KeyComboButton("Zoom: Copy Invite Link",        GREEN, k, Keycode.F4),
-        KeyComboButton("Zoom: Toggle Video",            GREEN, k, Keycode.F1),
-        KeyComboButton("Zoom: Toggle Audio",            GREEN, k, Keycode.F6),
+# Set up rotary encoder
+encoder = rotaryio.IncrementalEncoder(board.A1, board.A0)
+last_position = encoder.position
 
-        # Column 1
-        EmptyButton(   "Button 5 unset",                CYAN),
-        EmptyButton(   "Button 4 unset",                CYAN),
-        KeyComboButton("Zoom: Pause Share",             GREEN, k, Keycode.F7),
-        KeyComboButton("Zoom: Share",                   GREEN, k, Keycode.F2),
+# Set up Keyboard and Bluethooth
+hid = HIDService()
 
-        # Column 2
-        KeyComboButton("OBS: Transition",               BLUE,  k, Keycode.F10),
-        KeyComboButton("OBS: Screen Shot Output",       BLUE,  k, Keycode.F9),
-        KeyComboButton("OBS: Toggle Virtual Camera",    BLUE,  k, Keycode.F12),
-        KeyComboButton("OBS: Switch to Default Scene",  BLUE,  k, Keycode.F11, Keycode.F10),
+device_info = DeviceInfoService(software_revision=adafruit_ble.__version__,
+                                manufacturer="Josh Industries")
+advertisement = ProvideServicesAdvertisement(hid)
+advertisement.appearance = 961
+scan_response = Advertisement()
+scan_response.complete_name = "White Box"
 
-        # Column 3
-        VolumeButton(  "Volume Mute",                   YELLOW, cc, ConsumerControlCode.MUTE),
-        VolumeButton(  "Volume Mute",                   YELLOW, cc, ConsumerControlCode.MUTE),
-        VolumeButton(  "Volume Down",                   YELLOW, cc, ConsumerControlCode.VOLUME_DECREMENT),
-        VolumeButton(  "Volume Up",                     YELLOW, cc, ConsumerControlCode.VOLUME_INCREMENT),
-        ]
+ble = adafruit_ble.BLERadio()
+if not ble.connected:
+    print("advertising bluetooth")
+    ble.start_advertising(advertisement, scan_response)
+else:
+    print("already connected bluetooth")
+    print(ble.connections)
 
-def wait_for_bluetooth_connection():
-    ble_counter = 0
-    pixels = trellis.pixels
+k = Keyboard(hid.devices)
+kl = KeyboardLayoutUS(k)
+
+cc = ConsumerControl(hid.devices)
+
+def volume_down():
+    print("going down")
+    cc.send(ConsumerControlCode.VOLUME_DECREMENT)
+
+def volume_up():
+    print("Going up")
+    cc.send(ConsumerControlCode.VOLUME_INCREMENT)
+
+def wait_for_bluetooth_connection(ble):
+    ble_counter = 50000 + 1
 
     print ("Waiting for connection...")
-    pixels[15] = BLUE
-    next_color = YELLOW
-    while not ble.is_connected():
+    while not ble.connected:
         ble_counter += 1
         if ble_counter > 50000:
             ble_counter = 0
             print ("Waiting for connection...")
-            swap = pixels[15]
-            pixels[15] = next_color
-            next_color = swap 
         pass
-
-    pixels[15] = OFF
     print("Start typing:")
 
+def send_complex_combo(keycode):
+    # We shouldn't need to go through these hoops
+    # but when I was testing it, just using `send(...)`
+    # would always leave a modifer pressed.
+    # Explicitly unpressing the modifier seems to be required.
+
+    k.send(Keycode.CONTROL, Keycode.SHIFT, Keycode.ALT, keycode)
+
 while True:
-    wait_for_bluetooth_connection()
+    wait_for_bluetooth_connection(ble)
 
-    while ble.is_connected():
+    while ble.connected:
+        if not button_top_red.value:
+            print("Button 12 (top red) - Zoom: Toggle Video")
+            send_complex_combo(Keycode.F1)
+            time.sleep(0.4)
 
-        # call the sync function call any triggered callbacks
-        trellis.sync()
-        # the trellis can only be read every 17 millisecons or so
-        time.sleep(0.02)
+        if not button_bot_red.value:
+            print("Button 11 (bot red) - Zoom: Toggle Audio")
+            send_complex_combo(Keycode.F6)
+            time.sleep(0.4)
 
-    ble.start_advertising()
+        if not button_top_yel.value:
+            print("Button 10 (top yel) - Zoom: Share Screen")
+            send_complex_combo(Keycode.F2)
+            time.sleep(0.4)
+
+        if not button_bot_yel.value:
+            print("Button  9 (top yel) - Zoom: Change View")
+            send_complex_combo(Keycode.F7)
+            time.sleep(0.4)
+
+        if not button_top_grn.value:
+            print("Button  5 (top grn) - Zoom: Closing Meeting")
+            send_complex_combo(Keycode.F3)
+            time.sleep(0.4)
+
+        if not button_bot_grn.value:
+            print("Button  6 (bot grn) - Zoom: Assign new host and leave meeting")
+            send_complex_combo(Keycode.F8)
+            time.sleep(0.4)
+
+        # Rotary encoder (volume knob)
+        current_position = encoder.position
+        position_change = current_position - last_position
+        if position_change > 0:
+            for _ in range(position_change):
+                volume_down()
+
+            print(current_position)
+
+        elif position_change < 0:
+            for _ in range(-1 * position_change):
+                volume_up()
+            print(current_position)
+
+        last_position = current_position
+
+    ble.start_advertising(advertisement)

@@ -1,4 +1,5 @@
 from adafruit_hid.keycode import Keycode
+from adafruit_hid.consumer_control_code import ConsumerControlCode
 
 class LambdaButton:
     def __init__(self, name, color, func):
@@ -45,3 +46,24 @@ class VolumeButton:
         cmd = self.cmd
         cc.send(cmd)
 
+class ZoomButtons:
+    def __init__(self, color, k):
+        self.raise_hand       = KeyComboButton("Zoom: raise/lower hand", color, k, Keycode.F8),
+        self.copy_invite_link = KeyComboButton("Zoom: Copy Invite Link", color, k, Keycode.F4),
+        self.toggle_video     = KeyComboButton("Zoom: Toggle Video",     color, k, Keycode.F1),
+        self.toggle_audio     = KeyComboButton("Zoom: Toggle Audio",     color, k, Keycode.F6),
+        self.pause_share      = KeyComboButton("Zoom: Pause Share",      color, k, Keycode.F7),
+        self.start_share      = KeyComboButton("Zoom: Share",            color, k, Keycode.F2),
+
+class OBS_Buttons:
+    def __init__(self, color, k):
+        self.transition              = KeyComboButton("OBS: Transition",               color,  k, Keycode.F10),
+        self.screen_shot             = KeyComboButton("OBS: Screen Shot Output",       color,  k, Keycode.F9),
+        self.toggle_virtual_camera   = KeyComboButton("OBS: Toggle Virtual Camera",    color,  k, Keycode.F12),
+        self.switch_to_default_scene = KeyComboButton("OBS: Switch to Default Scene",  color,  k, Keycode.F11, Keycode.F10),
+
+class VolumeButtons:
+    def __init__(self, color, cc):
+        self.mute = VolumeButton("Volume Mute", color, cc, ConsumerControlCode.MUTE),
+        self.down = VolumeButton("Volume Down", color, cc, ConsumerControlCode.VOLUME_DECREMENT),
+        self.up   = VolumeButton("Volume Up",   color, cc, ConsumerControlCode.VOLUME_INCREMENT),
