@@ -1,8 +1,6 @@
 """
 """
 import time
-import board
-from digitalio import DigitalInOut, Direction, Pull
 
 import adafruit_ble
 from adafruit_ble.advertising import Advertisement
@@ -13,51 +11,8 @@ from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.keyboard import Keyboard
 import usb_hid
 
-import rotaryio
-
 from buttons import ZoomButtons, VolumeButtons
-
-def create_digital_buttons():
-    # Set up buttons
-    button_top_red = DigitalInOut(board.D12)
-    button_top_red.direction = Direction.INPUT
-    button_top_red.pull = Pull.UP
-
-    button_bot_red = DigitalInOut(board.D11)
-    button_bot_red.direction = Direction.INPUT
-    button_bot_red.pull = Pull.UP
-
-    button_top_yel = DigitalInOut(board.D10)
-    button_top_yel.direction = Direction.INPUT
-    button_top_yel.pull = Pull.UP
-
-    button_bot_yel = DigitalInOut(board.D9)
-    button_bot_yel.direction = Direction.INPUT
-    button_bot_yel.pull = Pull.UP
-
-    button_bot_grn = DigitalInOut(board.D6)
-    button_bot_grn.direction = Direction.INPUT
-    button_bot_grn.pull = Pull.UP
-
-    button_top_grn = DigitalInOut(board.D5)
-    button_top_grn.direction = Direction.INPUT
-    button_top_grn.pull = Pull.UP
-
-    buttons = [
-        button_top_red, 
-        button_bot_red, 
-        button_top_yel, 
-        button_bot_yel, 
-        button_top_grn,
-        button_bot_grn, 
-    ]
-
-    return buttons
-
-
-# Set up rotary encoder
-encoder = rotaryio.IncrementalEncoder(board.A1, board.A0)
-last_position = encoder.position
+from WhiteBoxDriver import WhiteBoxDriver
 
 # Set up Keyboard and Bluethooth
 hid = HIDService()
@@ -95,16 +50,20 @@ def wait_for_bluetooth_connection(ble):
 zoom = ZoomButtons("zoom", k)
 volume = VolumeButtons("volume", cc)
 
-buttons = create_digital_buttons()
 commands = [ 
     zoom.toggle_video,
     zoom.toggle_audio,
     zoom.start_share,
     zoom.pause_share,
     zoom.copy_invite_link,
-    zoom.raise_hand
+    zoom.raise_hand,
+    volume.down,
+    volume.up,
 ]
-            
+
+driver = WhiteBoxDriver(commands)
+driver.initialize()
+
 def raise_button(idx):
     cmd = commands[idx]
     cmd.onPress()
@@ -113,26 +72,6 @@ while True:
     wait_for_bluetooth_connection(ble)
 
     while ble.connected:
-        for idx in range(len(buttons)):
-            button = buttons[idx]
-            if not button.value:
-                raise_button(idx)
-                time.sleep(0.4)
-
-        # Rotary encoder (volume knob)
-        current_position = encoder.position
-        position_change = current_position - last_position
-        if position_change > 0:
-            for _ in range(position_change):
-                volume.down.onPress()
-
-            print(current_position)
-
-        elif position_change < 0:
-            for _ in range(-1 * position_change):
-                volume.up.onPress()
-            print(current_position)
-
-        last_position = current_position
+        driver.sync()
 
     ble.start_advertising(advertisement)
