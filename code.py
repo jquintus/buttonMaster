@@ -17,30 +17,43 @@ import rotaryio
 
 from buttons import ZoomButtons, VolumeButtons
 
-# Set up buttons
-button_top_red = DigitalInOut(board.D12)
-button_top_red.direction = Direction.INPUT
-button_top_red.pull = Pull.UP
+def create_digital_buttons():
+    # Set up buttons
+    button_top_red = DigitalInOut(board.D12)
+    button_top_red.direction = Direction.INPUT
+    button_top_red.pull = Pull.UP
 
-button_bot_red = DigitalInOut(board.D11)
-button_bot_red.direction = Direction.INPUT
-button_bot_red.pull = Pull.UP
+    button_bot_red = DigitalInOut(board.D11)
+    button_bot_red.direction = Direction.INPUT
+    button_bot_red.pull = Pull.UP
 
-button_top_yel = DigitalInOut(board.D10)
-button_top_yel.direction = Direction.INPUT
-button_top_yel.pull = Pull.UP
+    button_top_yel = DigitalInOut(board.D10)
+    button_top_yel.direction = Direction.INPUT
+    button_top_yel.pull = Pull.UP
 
-button_bot_yel = DigitalInOut(board.D9)
-button_bot_yel.direction = Direction.INPUT
-button_bot_yel.pull = Pull.UP
+    button_bot_yel = DigitalInOut(board.D9)
+    button_bot_yel.direction = Direction.INPUT
+    button_bot_yel.pull = Pull.UP
 
-button_bot_grn = DigitalInOut(board.D6)
-button_bot_grn.direction = Direction.INPUT
-button_bot_grn.pull = Pull.UP
+    button_bot_grn = DigitalInOut(board.D6)
+    button_bot_grn.direction = Direction.INPUT
+    button_bot_grn.pull = Pull.UP
 
-button_top_grn = DigitalInOut(board.D5)
-button_top_grn.direction = Direction.INPUT
-button_top_grn.pull = Pull.UP
+    button_top_grn = DigitalInOut(board.D5)
+    button_top_grn.direction = Direction.INPUT
+    button_top_grn.pull = Pull.UP
+
+    buttons = [
+        button_top_red, 
+        button_bot_red, 
+        button_top_yel, 
+        button_bot_yel, 
+        button_top_grn,
+        button_bot_grn, 
+    ]
+
+    return buttons
+
 
 # Set up rotary encoder
 encoder = rotaryio.IncrementalEncoder(board.A1, board.A0)
@@ -81,33 +94,30 @@ def wait_for_bluetooth_connection(ble):
 
 zoom = ZoomButtons("zoom", k)
 volume = VolumeButtons("volume", cc)
+
+buttons = create_digital_buttons()
+commands = [ 
+    zoom.toggle_video,
+    zoom.toggle_audio,
+    zoom.start_share,
+    zoom.pause_share,
+    zoom.copy_invite_link,
+    zoom.raise_hand
+]
+            
+def raise_button(idx):
+    cmd = commands[idx]
+    cmd.onPress()
+
 while True:
     wait_for_bluetooth_connection(ble)
 
     while ble.connected:
-        if not button_top_red.value:
-            zoom.toggle_video.onPress()
-            time.sleep(0.4)
-
-        if not button_bot_red.value:
-            zoom.toggle_audio.onPress()
-            time.sleep(0.4)
-
-        if not button_top_yel.value:
-            zoom.start_share.onPress()
-            time.sleep(0.4)
-
-        if not button_bot_yel.value:
-            zoom.pause_share.onPress()
-            time.sleep(0.4)
-
-        if not button_top_grn.value:
-            zoom.copy_invite_link.onPress()
-            time.sleep(0.4)
-
-        if not button_bot_grn.value:
-            zoom.raise_hand.onPress()
-            time.sleep(0.4)
+        for idx in range(len(buttons)):
+            button = buttons[idx]
+            if not button.value:
+                raise_button(idx)
+                time.sleep(0.4)
 
         # Rotary encoder (volume knob)
         current_position = encoder.position
