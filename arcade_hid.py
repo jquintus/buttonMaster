@@ -33,9 +33,9 @@ class ArcadeKeyboard:
         mouse = Mouse(hid.devices)
         cc = ConsumerControl(hid.devices)
 
-        # private fields 
-        self.hid = hid        
-        self.ble = ble        
+        # private fields
+        self.hid = hid
+        self.ble = ble
         self.advertisement = advertisement
         self.k = k
         self.kl = kl
@@ -48,7 +48,6 @@ class ArcadeKeyboard:
 
         ble.start_advertising(advertisement)
 
-
     def is_connected(self):
         return self.ble.connected
 
@@ -57,3 +56,16 @@ class ArcadeKeyboard:
 
     def get_consumer_control(self):
         return self.cc
+
+
+    def wait_for_bluetooth_connection(self):
+        ble_counter = 0
+        print ("Waiting for connection...")
+        while not self.is_connected():
+            ble_counter += 1
+            if ble_counter > 50000:
+                ble_counter = 0
+                print ("Waiting for connection...")
+            pass
+        print("Start typing:")
+
